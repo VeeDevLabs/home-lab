@@ -1,0 +1,20 @@
+# Docker
+*.log
+.env
+.env.*
+docker-data/
+volumes/
+
+# Prometheus data
+prometheus_data/
+
+# Grafana data
+grafana_data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
