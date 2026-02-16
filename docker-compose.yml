@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./estate-ui
+    container_name: estate-ui
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    networks:
+      - homelab-net
+
+  db:
+    image: mysql:8
+    container_name: lab-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: labpass
+      MYSQL_DATABASE: homelab
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - homelab-net
+
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    ports:
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - homelab-net
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - homelab-net
+
+volumes:
+  mysql_data:
+  portainer_data:
+
+networks:
+  homelab-net:
+    driver: bridge
