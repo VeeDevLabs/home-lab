@@ -1,40 +1,73 @@
+version: "3.8"
+
 services:
 
-  estate-ui:
-    build: ./estate-ui
-    container_name: estate-ui
-    networks:
-      - homelab-net
-
-  lab-mysql:
-    image: mysql:8
-    container_name: lab-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: labpass
-      MYSQL_DATABASE: homelab
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - homelab-net
-
-  portainer:
-    image: portainer/portainer-ce
-    container_name: portainer
+  reverse-proxy:
+    image: nginx:latest
+    container_name: reverse-proxy
     ports:
-      - "9443:9443"
+      - "80:80"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    networks:
-      - homelab-net
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - alertmanager
+    restart: unless-stopped
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    volumes:
+      - ./prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    restart: unless-stopped
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:latest
     container_name: grafana
     ports:
       - "3000:3000"
-    networks:
-      - homelab-net
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0.45
+    container_name: lab-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=labdb
+      - MYSQL_USER=exporter
+      - MYSQL_PASSWORD=exporterpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+  # mysqld-exporter:
+  #   image: prom/mysqld-exporter:latest
+  #   container_name: mysqld-exporter
+  #   environment:
+  #     - DATA_SOURCE_NAME=exporter:exporterpass@(lab-mysql:3306)/
+  #   ports:
+  #     - "9104:9104"
+  #   depends_on:
+  #     - mysql
+  #   restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    restart: unless-stopped
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -46,35 +79,16 @@ services:
       - /var/run:/var/run:ro
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
-    networks:
-      - homelab-net
+    restart: unless-stopped
 
-  prometheus:
-    image: prom/prometheus
-    container_name: prometheus
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
     ports:
-      - "9090:9090"
+      - "9443:9443"
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - homelab-net
-
-  proxy:
-    image: nginx
-    container_name: reverse-proxy
-    ports:
-      - "80:80"
-    volumes:
-      - ./reverse-proxy/nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - estate-ui
-    networks:
-      - homelab-net
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
 
 volumes:
   mysql_data:
-  portainer_data:
-
-networks:
-  homelab-net:
-    driver: bridge
