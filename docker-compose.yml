@@ -47,6 +47,23 @@ services:
 
 
   # ===============================
+  # Estate UI (Frontend)
+  # ===============================
+  estate-ui:
+    build:
+      context: ./estate-ui
+      dockerfile: dockerfile
+    container_name: estate-ui
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.25
+    expose:
+      - "80"
+    networks:
+      - lab-network
+
+
+  # ===============================
   # Reverse Proxy
   # ===============================
   lab-nginx:
@@ -61,6 +78,7 @@ services:
       - ./docker-lab-phase2/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - app
+      - estate-ui
     networks:
       - lab-network
 
