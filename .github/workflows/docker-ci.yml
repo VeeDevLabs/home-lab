@@ -25,10 +25,16 @@ jobs:
         run: docker compose up -d
 
       - name: Wait for Services
-        run: sleep 10
+        run: sleep 15
 
       - name: Verify Running Containers
         run: docker ps
 
       - name: Test Application Endpoint
-        run: curl -f http://localhost || exit 1
+        run: |
+          for i in {1..5}; do
+            curl -f http://localhost && exit 0
+            echo "Retrying..."
+            sleep 5
+          done
+          exit 1
