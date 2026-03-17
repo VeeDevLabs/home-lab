@@ -30,6 +30,12 @@ jobs:
       - name: Verify Running Containers
         run: docker ps
 
-      - name: Test Application from Container Network
+      - name: Test Application Endpoint
         run: |
-          docker exec $(docker ps -qf "name=nginx") curl -f http://localhost || exit 1
+          for i in {1..10}; do
+            curl -4 -f http://127.0.0.1 && exit 0
+            echo "Retrying..."
+            sleep 5
+          done
+          docker ps
+          exit 1
