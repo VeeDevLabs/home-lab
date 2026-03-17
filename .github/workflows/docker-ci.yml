@@ -24,5 +24,11 @@ jobs:
       - name: Run Containers
         run: docker compose up -d
 
+      - name: Wait for Services
+        run: sleep 10
+
       - name: Verify Running Containers
         run: docker ps
+
+      - name: Test Application Endpoint
+        run: curl -f http://localhost || exit 1

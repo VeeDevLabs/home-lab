@@ -1,3 +1,4 @@
+![CI](https://github.com/VeeDevLabs/home-lab/actions/workflows/docker-ci.yml/badge.svg)
 🐳 Docker Home Lab — CI/CD Infrastructure Project
 A production-style Docker environment simulating real-world infrastructure deployment, hardening, and CI/CD automation. Built as a hands-on demonstration of multi-container orchestration, security hardening, and pipeline automation practices relevant to Infrastructure and Cloud Engineering roles.
 
